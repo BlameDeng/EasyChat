@@ -2,21 +2,6 @@ import AV from 'leancloud-storage'
 import key from '../../key.js'
 AV.init({ appId: key.appId, appKey: key.appKey })
 
-// AV.User.logIn('blam', '12346')
-//     .then(res => {
-//         console.log(res)
-//     })
-//     .catch(error => {
-//         console.log(error, error.code, error.error)
-//     })
-// AV.User.signUp('blame','123456')
-// .then(res=>{
-//     console.log(res);
-// })
-// .catch(error=>{
-//     console.log(error);
-
-// })
 class Leancloud {
     constructor(className) {
         this.className = className
@@ -48,6 +33,12 @@ class Leancloud {
         let dependentInstance = AV.Object.createWithoutData(dependentClassName, dependentId)
         let query = new AV.Query(this.className)
         query.equalTo('dependent', dependentInstance)
+        return query.find()
+    }
+
+    query(key, val) {
+        let query = new AV.Query(this.className)
+        query.equalTo(key, val)
         return query.find()
     }
 

@@ -14,5 +14,8 @@
         color: rgba(0, 0, 0, .65);
         width: 100%;
         height: 100%;
+        background-image: url('./assets/bg.jpg');
+        background-position: center center;
+        background-size: cover;
     }
 </style>

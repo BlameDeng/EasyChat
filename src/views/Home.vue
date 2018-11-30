@@ -10,7 +10,7 @@
                 <x-input icon="lock" placeholder="请输入密码" type="password" v-model="password"></x-input>
             </div>
             <div class="button" role="button" @click="onLogin">登&nbsp;录</div>
-            <span class="info">未注册用户名将自动注册</span>
+            <span class="info">若为未注册用户，将自动为您注册</span>
         </div>
     </div>
 </template>
@@ -26,7 +26,7 @@
         data() {
             return {
                 username: '',
-                password: '',
+                password: '123456',
                 error: ''
             }
         },
@@ -63,6 +63,7 @@
                         let username = res.attributes.username
                         localStorage.setItem('username', username)
                         this.setUser({ id, username })
+                        this.$router.push('/user')
                     })
                     .catch(error => {
                         if (error.code === 210) {
@@ -74,6 +75,7 @@
                                     let username = res.attributes.username
                                     localStorage.setItem('username', username)
                                     this.setUser({ id, username })
+                                    this.$router.push('/user')
                                 })
                         } else {
                             this.error = '系统异常'
@@ -91,9 +93,6 @@
     .home {
         width: 100%;
         height: 100%;
-        background-image: url('../assets/bg.jpg');
-        background-position: center center;
-        background-size: cover;
         >.icon {
             margin-top: 60px;
             margin-left: 60px;
