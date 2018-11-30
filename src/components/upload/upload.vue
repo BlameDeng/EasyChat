@@ -13,7 +13,8 @@
             containerId: { type: String, required: true },
             browseId: { type: String, required: true },
             postId: { type: String, default: '' },
-            bucketName: { type: String, required: true }
+            bucketName: { type: String, required: true },
+            unique:{type:String,default:''}
         },
         data() {
             return { url: '' }
@@ -81,7 +82,7 @@
                     },
 
                     BeforeUpload: function(up, file) {
-                        set_upload_param(up, file.name, true);
+                        set_upload_param(up, file.name+_self.unique, true);
                         _self.$emit('before-upload', file);
                     },
 
@@ -92,7 +93,7 @@
                     FileUploaded: function(up, file, info) {
                         if (info.status == 200) {
                             _self.url = host + '/' + encodeURIComponent(file.name);
-                            _self.$emit('uploaded', { url: _self.url, file });
+                            _self.$emit('uploaded', { url: _self.url+_self.unique, file });
                         }
                     },
 

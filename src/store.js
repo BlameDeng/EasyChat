@@ -31,6 +31,10 @@ export default new Vuex.Store({
         },
         async getUserInfo({ commit }, data) {
             return await UserInfo.query('uid', data.uid)
+        },
+        async updateInfo({ commit }, data) {
+            let { nickyname, avatar, id } = data
+            return await UserInfo.update({ nickyname, avatar }, id)
         }
     }
 })
