@@ -5,7 +5,6 @@ Vue.use(Vuex)
 import { AV, Leancloud } from '@/utils/leancloud.js'
 const UserInfo = new Leancloud('UserInfo')
 
-
 export default new Vuex.Store({
     state: {
         user: null,
@@ -25,6 +24,9 @@ export default new Vuex.Store({
         },
         async signUp({ commit }, data) {
             return await AV.User.signUp(data.username, data.password)
+        },
+        async logout({ commit }) {
+            return await AV.User.logOut()
         },
         async createUserInfo({ commit }, data) {
             return UserInfo.create(data)

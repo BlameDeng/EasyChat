@@ -27,8 +27,8 @@
                 </li>
                 <transition name="fade">
                     <li class="options" v-show="optionsVisible">
-                        <div>修改密码</div>
                         <div @click="dialogVisible=true">修改资料</div>
+                        <div @click="onLogout">退出登录</div>
                     </li>
                 </transition>
             </ul>
@@ -130,8 +130,8 @@
             document.removeEventListener('click', this.handleOptionsVisible)
         },
         methods: {
-            ...mapMutations(['setUserInfo']),
-            ...mapActions(['createUserInfo', 'getUserInfo', 'updateInfo']),
+            ...mapMutations(['setUser', 'setUserInfo']),
+            ...mapActions(['createUserInfo', 'getUserInfo', 'updateInfo', 'logout']),
             onClickAvatar(e) {
                 this.profileVisible = true
                 let { offsetX, offsetY } = e
@@ -163,6 +163,15 @@
             },
             uploaded(obj) {
                 this.avatar = obj.url + '?x-oss-process=style/avatar'
+            },
+            onLogout() {
+                this.logout()
+                    .then(res => {
+                        this.setUser(null)
+                        this.setUserInfo(null)
+                        localStorage.removeItem('username')
+                        this.$router.push('/')
+                    })
             }
         }
     }
