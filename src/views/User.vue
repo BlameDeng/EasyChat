@@ -3,8 +3,8 @@
         <main>
             <ul class="sider">
                 <li class="user-info" ref="user">
-                    <img v-if="userInfo&&userInfo.avatar" :src="userInfo.avatar" @click="onClickAvatar">
-                    <transition name="fade">
+                    <img v-if="userInfo&&userInfo.avatar" :src="userInfo.avatar" @click="dialogVisible=true">
+                    <!-- <transition name="fade">
                         <div class="profile" ref="profile" v-show="profileVisible">
                             <div class="info">
                                 <div class="name" v-if="user||userInfo">{{(userInfo&&userInfo.nickyname)||(user&&user.username)}}</div>
@@ -14,7 +14,7 @@
                                 <x-icon name="menu" class="icon" title="设置" @click="onSetting"></x-icon>
                             </div>
                         </div>
-                    </transition>
+                    </transition> -->
                 </li>
                 <li class="conversation">
                     <x-icon name="conversation" class="icon" :class="{active:currentTab==='conversation'}" @click="currentTab='conversation'"></x-icon>
@@ -32,8 +32,15 @@
                     </li>
                 </transition>
             </ul>
-            <div class="nav"></div>
-            <div class="content"></div>
+            <div class="nav">
+                <!-- <button @click="xxx">xxx</button>
+                <button @click="yyy">yyy</button>
+                <button @click="send">send</button> -->
+                <e-nav></e-nav>
+            </div>
+            <div class="content">
+                <e-conversation></e-conversation>
+            </div>
         </main>
         <transition name="fade">
             <div class="dialog" v-if="dialogVisible">
@@ -42,7 +49,7 @@
                     <div class="avatar" id="avatar">
                         <span>头像：</span>
                         <img v-if="userInfo&&userInfo.avatar" :src="avatar||userInfo.avatar">
-                        <div class="button" role="button" id="button">上传头像</div>
+                        <div class="button" role="button" id="button">上传新头像</div>
                         <x-upload container-id="avatar" browse-id="button" bucket-name="chatavatar" :unique="user.username" @uploaded="uploaded($event)"></x-upload>
                     </div>
                     <div class="nickyname">
@@ -59,11 +66,16 @@
     import xUpload from '@/components/upload/upload.vue'
     import xIcon from '@/components/icon/icon.vue'
     import xInput from '@/components/input/input.vue'
+    import eNav from '@/components/nav/nav.vue'
+    import eConversation from '@/components/conversation.vue'
     import { mapMutations, mapState, mapActions } from 'vuex'
+    import realtime from '@/utils/realtime.js'
+    import { TextMessage, Event } from 'leancloud-realtime'
     export default {
         name: 'User',
         mixins: [],
-        components: { xUpload, xIcon, xInput },
+        inject: ['eventBus'],
+        components: { xUpload, xIcon, xInput, eNav, eConversation },
         props: {},
         data() {
             return {
@@ -72,13 +84,14 @@
                 optionsVisible: false,
                 currentTab: 'conversation',
                 nickyname: '',
-                avatar: '',
+                avatar: ''
             }
         },
         computed: {
             ...mapState({
                 user: state => state.user,
-                userInfo: state => state.userInfo
+                userInfo: state => state.userInfo,
+                client: state => state.client
             })
         },
         watch: {
@@ -112,7 +125,7 @@
                     } else {
                         this.createUserInfo({
                             uid: this.user.id,
-                            nickyname: '',
+                            nickyname: this.user.username,
                             avatar: 'https://chatavatar.oss-cn-hangzhou.aliyuncs.com/avatar.png?x-oss-process=style/avatar',
                             friends: [],
                             groups: [],
@@ -124,14 +137,51 @@
                     }
                 })
         },
-        mounted() {},
+        async mounted() {
+            await realtime.createIMClient(this.user.id)
+                .then(res => {
+                    this.setClient(res)
+                    this.eventBus.$emit('client-ready')
+                    this.client.on(Event.MESSAGE, function(message, conversation) {
+                        console.log(message)
+                        console.log(conversation)
+                    })
+                })
+            //获取用户的对话
+            this.client.getQuery().limit(50).containsMembers([this.user.id]).find().then(conversations => {
+                if (conversations.length) {
+                    conversations.forEach(item => {
+                        item.lastMessage = item.lastMessage ? item.lastMessage.toJSON() : undefined
+                    })
+                    this.setConversations(conversations)
+                }
+            })
+        },
         beforeDestroy() {
             document.removeEventListener('click', this.listenDocument)
             document.removeEventListener('click', this.handleOptionsVisible)
         },
         methods: {
-            ...mapMutations(['setUser', 'setUserInfo']),
+            ...mapMutations(['setUser', 'setUserInfo', 'setConversations', 'setClient']),
             ...mapActions(['createUserInfo', 'getUserInfo', 'updateInfo', 'logout']),
+            xxx() {
+
+            },
+            yyy() {
+                this.client && this.client.close()
+            },
+            async send() {
+                let cc = await this.client.createConversation({
+                    members: ['5c0233a49f545400675ee3d5'],
+                    name: 'to Jerry',
+                    unique: true
+                })
+                cc.send(new TextMessage('耗子，起床！')).then(res => {
+                    console.log(res)
+                }).catch(err => {
+                    console.log(err)
+                })
+            },
             onClickAvatar(e) {
                 this.profileVisible = true
                 let { offsetX, offsetY } = e
@@ -202,6 +252,7 @@
                 border-bottom-left-radius: 2px;
                 padding-top: 20px;
                 position: relative;
+                flex-shrink: 0;
                 >li {
                     width: 40px;
                     height: 40px;
@@ -304,9 +355,10 @@
                 }
             }
             >.nav {
-                width: 250px;
+                width: 260px;
                 height: 100%;
                 background: rgb(245, 245, 245);
+                flex-shrink: 0;
             }
             >.content {
                 flex-grow: 1;
@@ -364,7 +416,7 @@
                     }
                     >.button {
                         cursor: pointer;
-                        width: 60px;
+                        width: 75px;
                         height: 24px;
                         display: flex;
                         justify-content: center;

@@ -8,7 +8,11 @@ const UserInfo = new Leancloud('UserInfo')
 export default new Vuex.Store({
     state: {
         user: null,
-        userInfo: null
+        userInfo: null,
+        client: null,
+        conversations: null,
+        currentConversationId: '',
+        chatTarget: null
     },
     mutations: {
         setUser(state, payload) {
@@ -16,6 +20,18 @@ export default new Vuex.Store({
         },
         setUserInfo(state, payload) {
             state.userInfo = payload
+        },
+        setClient(state, payload) {
+            state.client = payload
+        },
+        setConversations(state, payload) {
+            state.conversations = payload
+        },
+        setCurrentConversationId(state, payload) {
+            state.currentConversationId = payload
+        },
+        setChatTarget(state, payload) {
+            state.chatTarget = payload
         }
     },
     actions: {
