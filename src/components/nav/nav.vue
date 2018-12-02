@@ -2,9 +2,9 @@
     <div class="e-nav">
         <div class="title">
             <div class="chat">聊天</div>
-            <div class="icon-wrapper" title="发起群聊">
+            <!-- <div class="icon-wrapper" title="发起群聊">
                 <x-icon name="close" class="icon"></x-icon>
-            </div>
+            </div> -->
         </div>
         <template v-if="conversations&&conversations.length">
             <e-card v-for="item in conversations" :key="item.id" :conversation="item"></e-card>
@@ -17,22 +17,12 @@
     import { mapState } from 'vuex'
     export default {
         name: 'eNav',
-        mixins: [],
         components: { eCard, xIcon },
-        props: {},
-        data() {
-            return {}
-        },
         computed: {
             ...mapState({
                 conversations: state => state.conversations
             })
-        },
-        watch: {},
-        created() {},
-        mounted() {},
-        beforeDestroy() {},
-        methods: {}
+        }
     }
 </script>
 <style scoped lang="scss">

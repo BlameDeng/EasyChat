@@ -20,9 +20,7 @@
     import { mapMutations, mapActions } from 'vuex'
     export default {
         name: 'Home',
-        mixins: [],
         components: { xIcon, xInput },
-        props: {},
         data() {
             return {
                 username: '',
@@ -30,14 +28,10 @@
                 error: ''
             }
         },
-        computed: {},
-        watch: {},
         created() {
             let username = localStorage.getItem('username')
             if (username) { this.username = username }
         },
-        mounted() {},
-        beforeDestroy() {},
         methods: {
             ...mapMutations(['setUser']),
             ...mapActions(['login', 'signUp']),

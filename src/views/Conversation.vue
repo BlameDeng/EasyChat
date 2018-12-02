@@ -20,13 +20,8 @@
     import { TextMessage, Event } from 'leancloud-realtime'
     export default {
         name: 'Conversation',
-        mixins: [],
         inject: ['eventBus'],
         components: { xIcon, eNav, eDialog },
-        props: {},
-        data() {
-            return {}
-        },
         computed: {
             ...mapState({
                 user: state => state.user,
@@ -35,10 +30,6 @@
                 currentId: state => state.currentConversationId
             })
         },
-        watch: {},
-        created() {},
-        async mounted() {},
-        beforeDestroy() {},
         methods: {
             ...mapMutations(['setUser', 'setUserInfo', 'setConversations', 'setClient']),
             ...mapActions(['createUserInfo', 'getUserInfo', 'updateInfo', 'logout']),

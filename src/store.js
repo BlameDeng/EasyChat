@@ -45,8 +45,12 @@ export default new Vuex.Store({
         setChatTarget(state, payload) {
             state.chatTarget = payload
         },
-        setFriendsList(state,payload){
-            state.friendsList=payload
+        setFriendsList(state, payload) {
+            state.friendsList = payload
+        },
+        addConversation(state, payload) {
+            state.conversations = state.conversations || []
+            state.conversations.push(payload)
         }
     },
     actions: {

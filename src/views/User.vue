@@ -63,10 +63,8 @@
     import { TextMessage, Event } from 'leancloud-realtime'
     export default {
         name: 'User',
-        mixins: [],
         inject: ['eventBus'],
         components: { xUpload, xIcon, xInput },
-        props: {},
         data() {
             return {
                 dialogVisible: false,
@@ -80,7 +78,8 @@
             ...mapState({
                 user: state => state.user,
                 userInfo: state => state.userInfo,
-                client: state => state.client
+                client: state => state.client,
+                conversations: state => state.conversations
             })
         },
         watch: {
@@ -125,29 +124,40 @@
                     this.setClient(res)
                     this.eventBus.$emit('client-ready')
                     this.client.on(Event.MESSAGE, (message, conversation) => {
+                        if (!this.conversations.find(con => con.id === conversation.id)) {
+                            this.addConversation(conversation)
+                        }
                         this.eventBus.$emit('new-message', message, conversation)
                     })
                 })
             //获取用户的对话
-            this.client.getQuery().limit(50).containsMembers([this.user.id]).find().then(conversations => {
-                if (conversations.length) {
-                    conversations.forEach(item => {
-                        item.lastMessage = item.lastMessage ? item.lastMessage.toJSON() : undefined
+            await this.client.getQuery().limit(50).containsMembers([this.user.id]).find()
+                .then(conversations => {
+                    if (conversations.length) {
+                        conversations.forEach(item => {
+                            item.lastMessage = item.lastMessage ? item.lastMessage.toJSON() : undefined
+                        })
+                        this.setConversations(conversations)
+                    }
+                })
+            if (!this.conversations || !this.conversations.find(con => con.id === '5c03d07960d9007f7ba87c28')) {
+                this.client.getConversation('5c03d07960d9007f7ba87c28')
+                    .then(conversation => {
+                        return conversation.join()
                     })
-                    this.setConversations(conversations)
-                }
-            })
+                    .then(conversation => {
+                        this.addConversation(conversation)
+                    })
+            }
         },
         beforeDestroy() {
+            this.client && this.client.close()
             document.removeEventListener('click', this.listenDocument)
             document.removeEventListener('click', this.handleOptionsVisible)
         },
         methods: {
-            ...mapMutations(['setUser', 'setUserInfo', 'setConversations', 'setClient']),
+            ...mapMutations(['setUser', 'setUserInfo', 'setConversations', 'setClient', 'addConversation']),
             ...mapActions(['createUserInfo', 'getUserInfo', 'updateInfo', 'logout']),
-            yyy() {
-                this.client && this.client.close()
-            },
             onClickTab(tab) {
                 this.currentTab = tab
                 this.$router.push(`/user/${tab}`)
@@ -172,6 +182,10 @@
             },
             onSaveInfo() {
                 if (this.nickyname === this.userInfo.nickyname && this.avatar === this.userInfo.avatar) {
+                    this.dialogVisible = false
+                    return
+                }
+                if (!this.nickyname) {
                     this.dialogVisible = false
                     return
                 }
@@ -258,6 +272,7 @@
                         position: absolute;
                         left: 100%;
                         bottom: 20px;
+                        z-index: 30;
                         background: rgba(0, 0, 0, 0.45);
                         border-top-right-radius: 2px;
                         border-bottom-right-radius: 2px;

@@ -1,13 +1,13 @@
 <template>
     <div class="card" @click="onClick" :class="{selected:conversation.id===currentId}">
         <template v-if="target">
-            <img :src="target.avatar" @click="onAvatar" ref="img">
+            <img :src="conversation.members.length===2?target.avatar:'https://chatavatar.oss-cn-hangzhou.aliyuncs.com/multiple.png?x-oss-process=style/avatar'" @click="onAvatar" ref="img">
             <div class="content">
                 <div class="name">
-                    <span class="nickyname">{{target.nickyname}}</span>
+                    <span class="nickyname">{{conversation.members.length===2?target.nickyname:conversation.name}}</span>
                 </div>
                 <div class="msg">
-                    最近会话：{{conversation._lastMessageAt&&formatTime(conversation._lastMessageAt).stamp}}
+                    最新消息：{{conversation._lastMessageAt&&formatTime(conversation._lastMessageAt).stamp}}
                 </div>
             </div>
             <transition name="fade">
@@ -122,7 +122,7 @@
                 this.addFriends({ friends, id: this.userInfo.id })
                     .then(res => {
                         this.addFriendInfo(this.target.uid)
-                        this.add=false
+                        this.add = false
                     })
             }
         }
