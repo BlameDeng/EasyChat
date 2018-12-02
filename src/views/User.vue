@@ -17,10 +17,10 @@
                     </transition> -->
                 </li>
                 <li class="conversation">
-                    <x-icon name="conversation" class="icon" :class="{active:currentTab==='conversation'}" @click="currentTab='conversation'"></x-icon>
+                    <x-icon name="conversation" class="icon" :class="{active:currentTab==='conversation'}" @click="onClickTab('conversation')"></x-icon>
                 </li>
                 <li class="contract">
-                    <x-icon name="contract" class="icon" :class="{active:currentTab==='contract'}" @click="currentTab='contract'"></x-icon>
+                    <x-icon name="contract" class="icon" :class="{active:currentTab==='contract'}" @click="onClickTab('contract')"></x-icon>
                 </li>
                 <li class="setting">
                     <x-icon name="menu" class="icon" @click="optionsVisible=true"></x-icon>
@@ -32,42 +32,32 @@
                     </li>
                 </transition>
             </ul>
-            <div class="nav">
-                <!-- <button @click="xxx">xxx</button>
-                <button @click="yyy">yyy</button>
-                <button @click="send">send</button> -->
-                <e-nav></e-nav>
-            </div>
-            <div class="content">
-                <e-conversation></e-conversation>
-            </div>
-        </main>
-        <transition name="fade">
-            <div class="dialog" v-if="dialogVisible">
-                <div class="form">
-                    <x-icon name="close" class="close" @click="dialogVisible=false"></x-icon>
-                    <div class="avatar" id="avatar">
-                        <span>头像：</span>
-                        <img v-if="userInfo&&userInfo.avatar" :src="avatar||userInfo.avatar">
-                        <div class="button" role="button" id="button">上传新头像</div>
-                        <x-upload container-id="avatar" browse-id="button" bucket-name="chatavatar" :unique="user.username" @uploaded="uploaded($event)"></x-upload>
+            <transition name="fade">
+                <div class="dialog" v-if="dialogVisible">
+                    <div class="form">
+                        <x-icon name="close" class="close" @click="dialogVisible=false"></x-icon>
+                        <div class="avatar" id="avatar">
+                            <span>头像：</span>
+                            <img v-if="userInfo&&userInfo.avatar" :src="avatar||userInfo.avatar">
+                            <div class="button" role="button" id="button">上传新头像</div>
+                            <x-upload container-id="avatar" browse-id="button" bucket-name="chatavatar" :unique="user.username" @uploaded="uploaded($event)"></x-upload>
+                        </div>
+                        <div class="nickyname">
+                            <span>昵称：</span>
+                            <x-input class="input" v-model.trim="nickyname"></x-input>
+                        </div>
+                        <div class="button" role="button" @click="onSaveInfo">保&nbsp;存</div>
                     </div>
-                    <div class="nickyname">
-                        <span>昵称：</span>
-                        <x-input class="input" v-model.trim="nickyname"></x-input>
-                    </div>
-                    <div class="button" role="button" @click="onSaveInfo">保&nbsp;存</div>
                 </div>
-            </div>
-        </transition>
+            </transition>
+            <router-view />
+        </main>
     </div>
 </template>
 <script>
     import xUpload from '@/components/upload/upload.vue'
     import xIcon from '@/components/icon/icon.vue'
     import xInput from '@/components/input/input.vue'
-    import eNav from '@/components/nav/nav.vue'
-    import eConversation from '@/components/conversation.vue'
     import { mapMutations, mapState, mapActions } from 'vuex'
     import realtime from '@/utils/realtime.js'
     import { TextMessage, Event } from 'leancloud-realtime'
@@ -75,11 +65,10 @@
         name: 'User',
         mixins: [],
         inject: ['eventBus'],
-        components: { xUpload, xIcon, xInput, eNav, eConversation },
+        components: { xUpload, xIcon, xInput },
         props: {},
         data() {
             return {
-                profileVisible: false,
                 dialogVisible: false,
                 optionsVisible: false,
                 currentTab: 'conversation',
@@ -95,13 +84,6 @@
             })
         },
         watch: {
-            profileVisible(val) {
-                if (val) {
-                    document.addEventListener('click', this.listenDocument)
-                } else {
-                    document.removeEventListener('click', this.listenDocument)
-                }
-            },
             dialogVisible(val) {
                 if (val) {
                     this.nickyname = this.userInfo.nickyname
@@ -142,9 +124,8 @@
                 .then(res => {
                     this.setClient(res)
                     this.eventBus.$emit('client-ready')
-                    this.client.on(Event.MESSAGE, function(message, conversation) {
-                        console.log(message)
-                        console.log(conversation)
+                    this.client.on(Event.MESSAGE, (message, conversation) => {
+                        this.eventBus.$emit('new-message', message, conversation)
                     })
                 })
             //获取用户的对话
@@ -164,23 +145,12 @@
         methods: {
             ...mapMutations(['setUser', 'setUserInfo', 'setConversations', 'setClient']),
             ...mapActions(['createUserInfo', 'getUserInfo', 'updateInfo', 'logout']),
-            xxx() {
-
-            },
             yyy() {
                 this.client && this.client.close()
             },
-            async send() {
-                let cc = await this.client.createConversation({
-                    members: ['5c0233a49f545400675ee3d5'],
-                    name: 'to Jerry',
-                    unique: true
-                })
-                cc.send(new TextMessage('耗子，起床！')).then(res => {
-                    console.log(res)
-                }).catch(err => {
-                    console.log(err)
-                })
+            onClickTab(tab) {
+                this.currentTab = tab
+                this.$router.push(`/user/${tab}`)
             },
             onClickAvatar(e) {
                 this.profileVisible = true
@@ -266,54 +236,6 @@
                             border-radius: 2px;
                             cursor: pointer;
                         }
-                        >.profile {
-                            position: absolute;
-                            top: 0;
-                            left: 0;
-                            width: 220px;
-                            height: 180px;
-                            background: #fff;
-                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-                            border-radius: 2px;
-                            padding: 0 20px;
-                            >.info {
-                                width: 100%;
-                                height: 120px;
-                                display: flex;
-                                justify-content: space-between;
-                                align-items: center;
-                                border-bottom: 1px solid rgba(0, 0, 0, 0.15);
-                                >.name {
-                                    width: 100px;
-                                    cursor: default;
-                                    font-size: 18px;
-                                }
-                                >img {
-                                    width: 80px;
-                                    height: 80px;
-                                    border-radius: 2px;
-                                }
-                            }
-                            >.action {
-                                width: 100%;
-                                height: 60px;
-                                display: flex;
-                                justify-content: flex-end;
-                                align-items: center;
-                                >.icon {
-                                    width: 30px;
-                                    height: 30px;
-                                    cursor: pointer;
-                                    color: rgba(0, 0, 0, 0.45);
-                                    &:hover {
-                                        color: rgba(0, 0, 0, 0.55);
-                                    }
-                                    &:not(:last-child) {
-                                        margin-right: 10px;
-                                    }
-                                }
-                            }
-                        }
                     }
                     >.icon {
                         width: 38px;
@@ -354,108 +276,99 @@
                     }
                 }
             }
-            >.nav {
-                width: 260px;
+            >.dialog {
+                width: 100%;
                 height: 100%;
-                background: rgb(245, 245, 245);
-                flex-shrink: 0;
-            }
-            >.content {
-                flex-grow: 1;
-                height: 100%;
-            }
-        }
-        >.dialog {
-            width: 100%;
-            height: 100%;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background: rgba(0, 0, 0, 0.05);
-            >.form {
                 position: fixed;
-                top: 45%;
-                left: 50%;
-                transform: translateX(-50%) translateY(-50%);
-                width: 280px;
-                height: 280px;
-                background: #fff;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: stretch;
-                >.close {
-                    position: absolute;
-                    top: 5px;
-                    right: 5px;
-                    width: 18px;
-                    height: 18px;
-                    color: rgba(0, 0, 0, 0.45);
-                    cursor: pointer;
-                    &:hover {
-                        color: rgba(0, 0, 0, 0.55);
-                    }
-                }
-                >.avatar {
-                    width: 100%;
+                top: 0;
+                left: 0;
+                background: rgba(0, 0, 0, 0.05);
+                z-index: 10;
+                >.form {
+                    position: fixed;
+                    top: 45%;
+                    left: 50%;
+                    transform: translateX(-50%) translateY(-50%);
+                    width: 280px;
+                    height: 280px;
+                    background: #fff;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
                     display: flex;
-                    justify-content: flex-start;
-                    align-items: flex-end;
-                    padding: 10px;
-                    >span {
-                        display: inline-flex;
-                        width: 45px;
-                        flex-shrink: 0;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: stretch;
+                    >.close {
+                        position: absolute;
+                        top: 5px;
+                        right: 5px;
+                        width: 18px;
+                        height: 18px;
+                        color: rgba(0, 0, 0, 0.45);
+                        cursor: pointer;
+                        &:hover {
+                            color: rgba(0, 0, 0, 0.55);
+                        }
                     }
-                    >img {
-                        width: 80px;
-                        height: 80px;
-                        margin: 0 10px;
-                        border-radius: 2px;
+                    >.avatar {
+                        width: 100%;
+                        display: flex;
+                        justify-content: flex-start;
+                        align-items: flex-end;
+                        padding: 10px;
+                        >span {
+                            display: inline-flex;
+                            width: 45px;
+                            flex-shrink: 0;
+                        }
+                        >img {
+                            width: 80px;
+                            height: 80px;
+                            margin: 0 10px;
+                            border-radius: 2px;
+                        }
+                        >.button {
+                            cursor: pointer;
+                            width: 75px;
+                            height: 24px;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            border-radius: 2px;
+                            border: 1px solid rgba(0, 0, 0, 0.15);
+                            color: rgba(0, 0, 0, 0.45);
+                            user-select: none;
+                            font-size: 12px
+                        }
+                    }
+                    >.nickyname {
+                        width: 100%;
+                        display: flex;
+                        justify-content: flex-start;
+                        align-items: center;
+                        padding: 10px;
+                        margin: 20px 0;
+                        >span {
+                            display: inline-flex;
+                            width: 45px;
+                            flex-shrink: 0;
+                        }
                     }
                     >.button {
+                        padding: 10px;
+                        margin: 0 auto;
                         cursor: pointer;
-                        width: 75px;
-                        height: 24px;
+                        width: 150px;
+                        height: 28px;
                         display: flex;
                         justify-content: center;
                         align-items: center;
                         border-radius: 2px;
-                        border: 1px solid rgba(0, 0, 0, 0.15);
-                        color: rgba(0, 0, 0, 0.45);
+                        background: $p;
+                        color: rgba(255, 255, 255, 0.85);
                         user-select: none;
-                        font-size: 12px
-                    }
-                }
-                >.nickyname {
-                    width: 100%;
-                    display: flex;
-                    justify-content: flex-start;
-                    align-items: center;
-                    padding: 10px;
-                    margin: 20px 0;
-                    >span {
-                        display: inline-flex;
-                        width: 45px;
-                        flex-shrink: 0;
-                    }
-                }
-                >.button {
-                    padding: 10px;
-                    margin: 0 auto;
-                    cursor: pointer;
-                    width: 150px;
-                    height: 28px;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    border-radius: 2px;
-                    background: $p;
-                    color: rgba(255, 255, 255, 0.85);
-                    user-select: none;
-                    &:hover {
-                        background: $hover;
+                        &:hover {
+                            background: $hover;
+                        }
                     }
                 }
             }

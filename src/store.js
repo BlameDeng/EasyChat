@@ -21,11 +21,22 @@ export default new Vuex.Store({
         setUserInfo(state, payload) {
             state.userInfo = payload
         },
+        addFriendInfo(state,payload){
+            state.userInfo.friends.push(payload)
+        },
         setClient(state, payload) {
             state.client = payload
         },
         setConversations(state, payload) {
             state.conversations = payload
+        },
+        updateConversation(state, payload) {
+            state.conversations = state.conversations || []
+            state.conversations.forEach((item, index) => {
+                if (item.id === payload.id) {
+                    state.conversations.splice(index, 1, payload)
+                }
+            })
         },
         setCurrentConversationId(state, payload) {
             state.currentConversationId = payload
@@ -53,6 +64,10 @@ export default new Vuex.Store({
         async updateInfo({ commit }, data) {
             let { nickyname, avatar, id } = data
             return await UserInfo.update({ nickyname, avatar }, id)
+        },
+        async addFriends({ commit }, data) {
+            let { friends, id } = data
+            return await UserInfo.update({ friends }, id)
         }
     }
 })

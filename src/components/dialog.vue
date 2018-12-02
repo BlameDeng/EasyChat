@@ -1,9 +1,9 @@
 <template>
-    <div class="e-conversation">
+    <div class="e-dialog">
         <div class="title">
             <span v-if="chatTarget">{{chatTarget.nickyname}}</span>
         </div>
-        <ul class="conversation">
+        <ul class="conversation" ref="ul">
             <template v-if="messages&&messages.length">
                 <li v-for="text in messages" :key="text.id">
                     <div class="time">{{formatTime(text._timestamp).con}}</div>
@@ -38,7 +38,7 @@
     import { TextMessage, Event } from 'leancloud-realtime'
     import formatTime from '@/utils/formatTime.js'
     export default {
-        name: 'eConversation',
+        name: 'eDialog',
         mixins: [],
         inject: ['eventBus'],
         components: {},
@@ -77,22 +77,34 @@
                     }
                 },
                 immediate: true
+            },
+            messages: {
+                handler(val) {
+                    this.scrollBottom()
+                },
+                deep: true,
+                immediate: true
             }
         },
         created() {
-
+            this.eventBus.$on('new-message', this.handleEventBus)
         },
         mounted() {
-            this.eventBus.$on('client-ready', this.handleEventBus)
+
         },
         beforeDestroy() {
-            this.eventBus.$off('client-ready', this.handleEventBus)
+            this.eventBus.$off('new-message', this.handleEventBus)
         },
         methods: {
-            handleEventBus() {
-                this.client.on(Event.MESSAGE, (message, conversation) => {
-                    this.messages.push(message)
+            scrollBottom() {
+                this.$nextTick(() => {
+                    this.$refs.ul.scrollTop = this.$refs.ul.scrollHeight
                 })
+            },
+            handleEventBus(message, conversation) {
+                if (conversation.id === this.currentId) {
+                    this.messages.push(message)
+                }
             },
             async send() {
                 if (!this.msg) { return }
@@ -113,7 +125,7 @@
 </script>
 <style scoped lang="scss">
     $p:#4587f0;
-    .e-conversation {
+    .e-dialog {
         width: 100%;
         height: 100%;
         display: flex;
@@ -126,6 +138,7 @@
             display: flex;
             justify-content: flex-start;
             align-items: center;
+            flex-shrink: 0;
             >span {
                 font-size: 16px;
                 color: rgba(0, 0, 0, 0.85);

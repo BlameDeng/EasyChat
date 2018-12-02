@@ -1,6 +1,6 @@
 <template>
     <div class="home">
-        <x-icon name="logo" class="icon"></x-icon>
+        <x-icon name="logo-copy" class="icon"></x-icon>
         <div class="login">
             <div class="error">
                 <x-icon name="error" style="margin-right:4px;" v-show="error"></x-icon><span style="cursor:default;" v-show="error">{{error}}</span>
