@@ -195,8 +195,8 @@
                         this.add = false
                     })
             },
-            getAvatar(uid){
-                let member=this.members.find(item=>item.uid===uid)
+            getAvatar(uid) {
+                let member = this.members.find(item => item.uid === uid)
                 return member.avatar
             }
         }

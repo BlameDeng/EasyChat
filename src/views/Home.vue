@@ -24,7 +24,7 @@
         data() {
             return {
                 username: '',
-                password: '123456',
+                password: '',
                 error: ''
             }
         },
