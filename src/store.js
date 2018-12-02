@@ -12,7 +12,8 @@ export default new Vuex.Store({
         client: null,
         conversations: null,
         currentConversationId: '',
-        chatTarget: null
+        chatTarget: null,
+        friendsList: null
     },
     mutations: {
         setUser(state, payload) {
@@ -21,7 +22,7 @@ export default new Vuex.Store({
         setUserInfo(state, payload) {
             state.userInfo = payload
         },
-        addFriendInfo(state,payload){
+        addFriendInfo(state, payload) {
             state.userInfo.friends.push(payload)
         },
         setClient(state, payload) {
@@ -43,6 +44,9 @@ export default new Vuex.Store({
         },
         setChatTarget(state, payload) {
             state.chatTarget = payload
+        },
+        setFriendsList(state,payload){
+            state.friendsList=payload
         }
     },
     actions: {
@@ -68,6 +72,13 @@ export default new Vuex.Store({
         async addFriends({ commit }, data) {
             let { friends, id } = data
             return await UserInfo.update({ friends }, id)
+        },
+        async getFriendsList({ commit }, data) {
+            const promises = []
+            data.ids.forEach(id => {
+                promises.push(UserInfo.query('uid', id))
+            })
+            return Promise.all(promises)
         }
     }
 })

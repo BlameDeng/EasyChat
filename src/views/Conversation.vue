@@ -46,8 +46,6 @@
     }
 </script>
 <style scoped lang="scss">
-    $p:#4587f0;
-    $hover:#72abfc;
     .conversation {
         height: 100%;
         flex-grow: 1;
