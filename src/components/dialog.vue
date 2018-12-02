@@ -260,6 +260,9 @@
                 border-radius: 2px;
                 box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
                 position: relative;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
                 >.title {
                     font-size: 12px;
                     color: rgba(0, 0, 0, 0.45);
@@ -283,8 +286,8 @@
                 }
                 >.members {
                     width: 100%;
-                    height: 100%;
                     overflow-y: scroll;
+                    flex-grow: 1;
                     >li {
                         display: flex;
                         justify-content: flex-start;
