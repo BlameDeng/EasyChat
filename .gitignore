@@ -2,6 +2,7 @@
 node_modules
 key.js
 oss.json
+/dist
 
 # local env files
 .env.local
